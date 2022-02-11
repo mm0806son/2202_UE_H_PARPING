@@ -18,29 +18,32 @@
 #define PARFOR_ATOMIC 3
 #define PARFOR_REDUCE 4
 
-#define STRATEGY SERIAL
+// #define STRATEGY SERIAL
+// #define STRATEGY PARFOR_NAIVE
+#define STRATEGY PARFOR_PARTIAL_SUMS
 
 // Function to convert an unsigned __int128 to a string
 std::string uint128_to_str(unsigned __int128 n)
-{ 
-    if(n == 0) return "0";
+{
+    if (n == 0)
+        return "0";
     std::string s;
     while (n != 0)
     {
-        s.insert(0, 1, char(n%10+'0'));
+        s.insert(0, 1, char(n % 10 + '0'));
         n /= 10;
     }
     return s;
 }
 
 // Overload to print unsigned __int128 number the C++ way
-std::ostream& operator<<(std::ostream& o, unsigned __int128 n)
+std::ostream &operator<<(std::ostream &o, unsigned __int128 n)
 {
     return o << uint128_to_str(n);
 }
 
 // Function used to switch between integer powers
-template<size_t exponent, class uint_sum_t>
+template <size_t exponent, class uint_sum_t>
 uint_sum_t power(uint_sum_t i)
 {
     if constexpr (exponent == 1)
@@ -54,7 +57,7 @@ uint_sum_t power(uint_sum_t i)
 }
 
 // Reference value for \sum_{i=1}^{N} i^k, k \in {1, 2, 3}
-template<size_t exponent, class uint_sum_t>
+template <size_t exponent, class uint_sum_t>
 uint_sum_t analytical_sum(uint_sum_t N)
 {
     if constexpr (exponent == 1)
@@ -67,19 +70,30 @@ uint_sum_t analytical_sum(uint_sum_t N)
         static_assert(exponent != exponent, "Keep the exponent between 1 and 3!");
 }
 
-template<size_t exponent, class uint_sum_t>
+template <size_t exponent, class uint_sum_t>
 uint_sum_t compute_sum_of_powers(uint_sum_t N)
 {
     uint_sum_t sum = 0;
 #if STRATEGY == SERIAL
     // Example code with parallelism at all
-    for(uint_sum_t i = 1; i < N + 1; ++i)
+    for (uint_sum_t i = 1; i < N + 1; ++i)
         sum += power<exponent>(i);
 #elif STRATEGY == PARFOR_NAIVE
-    // TODO Use an omp for to parallelize the code
+// TODO Use an omp for to parallelize the code
+#pragma omp parallel for
+    for (uint_sum_t i = 1; i < N + 1; ++i)
+    {
+        sum += power<exponent>(i);
+    }
 #elif STRATEGY == PARFOR_PARTIAL_SUMS
     // TODO Fix the naive parfor implementation using partial sums
     std::vector<uint_sum_t> partial_sums;
+
+#pragma omp parallel for
+    for (uint_sum_t i = 1; i < N + 1; ++i)
+    {
+        // partial_sums(i) += power<exponent>(i);
+    }
 
     sum = std::accumulate(partial_sums.cbegin(), partial_sums.cend(), 0ull);
 #elif STRATEGY == PARFOR_ATOMIC
@@ -94,8 +108,7 @@ uint_sum_t compute_sum_of_powers(uint_sum_t N)
     return sum;
 }
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     /*
      * Exponent you want to use for the summation
@@ -105,7 +118,8 @@ int main(int argc, char* argv[])
     /*
      * Check arguments and set things up
      */
-    if(argc != 2) {
+    if (argc != 2)
+    {
         std::cerr << "Usage: " << argv[0] << " N" << std::endl;
         return EXIT_FAILURE;
     }
@@ -130,12 +144,11 @@ int main(int argc, char* argv[])
 
     auto end = std::chrono::steady_clock::now();
 
-    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
     std::cout << "Computed result : " << sum << std::endl;
     std::cout << "Expected result : " << analytical_sum<exponent>(N) << std::endl;
-    
+
     return EXIT_SUCCESS;
 }
-
