@@ -43,29 +43,27 @@ Use `./exo_2 400000000 1 10 0 10` to execute.
 
 - Is the speedup as expected?
 
-Computed signal in 1 task: 12.734s
-Computed signal in 2 tasks: 6.86812s
-Computed signal in 3 tasks: 5.0251s
+  Computed signal in 1 task: 12.734s
+  Computed signal in 2 tasks: 6.86812s
+  Computed signal in 3 tasks: 5.0251s
 
-We expected the speedup is linear, however is is not as expected. When task number changed from 1 to 2, the speed is about 2 times faster. But when the task number changed from 2 to 3, the computation is only a little faster.
+  We expected the speedup is linear, however is is not as expected. When task number changed from 1 to 2, the speed is about 2 times faster. But when the task number changed from 2 to 3, the computation is only a little faster.
 
 - Analyze the speedup in function of the number of tasks, threads, and number of tasks per thread!
 
-When we increase the number of tasks, the calculation speed will increase. 
-If we increase the number of tasks, the speed will increase linearly until the number of tasks per thread is 1. In case the number of tasks per thread is 1, increasing the number of tasks has no noticeable performance gain.
+  When we increase the number of tasks, the calculation speed will increase. 
+  If we increase the number of tasks, the speed will increase linearly until the number of tasks per thread is 1. In case the number of tasks per thread is 1, increasing the number of tasks has no noticeable performance gain.
 
 - Is the whole vector initialized correctly for several values (even, odd, . . . ) of num_samples? Check the range of the plot to make sure everything is fine! If there is an issue, why and how can you fix it?
 
-For the initial vector of odd size, that poses a little problem. We force the user to enter even values.
+  We didn't see any issue.
 
 
 ### Question II.3 Compare the two parallelisation schemes you have implemented (tasks and #pragma omp for).
 
 How do they differ in exibility, ease of use, . . . ?
 
-In this problem, the `ParFor` method is easier with less code, and convenient to change the number of threads. The `Tasks` method requires manual creation of threads, which results in a lot of repetitive work. However, if we encounter a situation where we need to manually define different tasks for threads, the Task method will bring a higher level of freedom.
-
-
+In this problem, the `ParFor` method is easier with less code, and convenient to change the number of threads. The `Tasks` method requires manual creation of threads, which results in a lot of repetitive work. However, if we encounter a situation where we need to manually define different tasks for threads, the `Tasks` method will bring a higher level of freedom.
 
 ### Question II.4 Check the efficiency of the parallelization.
 
