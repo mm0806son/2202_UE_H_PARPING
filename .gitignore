@@ -18,3 +18,19 @@ tp_DLP/sim
 *.28
 
 *.1
+
+tp_GPU/splitting
+
+tp_GPU/V0
+
+tp_GPU/V0CPP
+
+tp_GPU/V1
+
+tp_GPU/V1_transpose
+
+tp_GPU/V2
+
+tp_GPU/V3
+
+tp_GPU/vecvec
