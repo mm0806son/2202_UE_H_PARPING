@@ -14,11 +14,49 @@ static inline void check(cudaError_t err, const char* context) {
 	}
 }
 
-#define CHECK(x) check(x, #x)
-__global__ void mykernel() {
-
+static inline int divup(int a, int b) { // The quotient of a divided by b, rounded up
+	return (a + b - 1)/b; // (a-1)/b + 1
 }
 
+#define CHECK(x) check(x, #x)
+
+// MAGIC
+__global__ void mykernel(float* c, const float* a, const float* b, int n) {
+	int i = blockIdx.x * threadIdx.x;
+	if (i > n) // if nothing left to do (num of threads > n)
+		return;
+	c[i] = a[i] + b[i];
+}
+
+void step(float* c, const float* a, const float* b, int n) {
+	// allocate memory in gpu
+	float* aGPU = NULL;
+	CHECK(cudaMalloc((void**)&aGPU, n * sizeof(float)));
+	float* bGPU = NULL;
+	CHECK(cudaMalloc((void**)&bGPU, n * sizeof(float)));
+	float* cGPU = NULL;
+	CHECK(cudaMalloc((void**)&cGPU, n * sizeof(float)));
+
+	// transfer a & b to GPU memory
+	CHECK(cudaMemcpy(aGPU, a, n * sizeof(float), cudaMemcpyHostToDevice)); 
+	CHECK(cudaMemcpy(bGPU, b, n * sizeof(float), cudaMemcpyHostToDevice)); 
+
+	// do the magic in GPU
+	const int threads = 32;
+	int blocks = divup(n, 32);
+	// const int blocks = 1562500;
+
+	// Run kernel
+	mykernel<<<blocks, threads>>>(cGPU, aGPU, bGPU, n);
+	CHECK(cudaGetLastError());
+
+	// get c into CPU memory
+	CHECK(cudaMemcpy(c, cGPU, n * sizeof(float), cudaMemcpyDeviceToHost)); 
+
+	CHECK(cudaFree(aGPU));
+	CHECK(cudaFree(bGPU));
+	CHECK(cudaFree(cGPU));
+}
 
 int main() {
 	int n = 50000000;
@@ -37,13 +75,9 @@ int main() {
 		b[i] = dis(gen);
 	}
 
-	// allocate memory in gpu
-
 	auto t1 = std::chrono::high_resolution_clock::now();
 
-	// transfer a & b to GPU memory
-	// do the magic in GPU
-	// get c into CPU memory
+	step(c.data(), a.data(),b.data(), n);
 
 	auto t2 = std::chrono::high_resolution_clock::now();
 

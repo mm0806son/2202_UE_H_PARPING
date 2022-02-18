@@ -56,14 +56,31 @@ void display_final_result(int x)
 	}
 	std::cout << "a: " << a << std::endl;
 	std::cout << "b: " << b << std::endl;
+	std::cout << "x: " << x << std::endl;
 	std::cout << "x: " << std::hex << x << std::endl;
 }
 
 
 __global__ void mykernel(int* r) {
 	// constexpr int iterations = ??;
+	int iterations = 1 << 14; //2^14=18768
+	int x3 = blockIdx.x;
+	int x2 = threadIdx.x;
 
 	// compute best x for given block and thread
+	int best_x = 0;
+	int best_v = value(best_x);
+	for (int x1 = 0; x1 < iterations; ++x1) {
+		int x = (x3 << 20) | (x2 << 14) | x1;
+		int v = value(x);
+		if (v < best_v) {
+			best_x = x;
+			best_v = v;
+		}
+		// std::cout << best_x << std::endl;
+	}
+	// r = best_x;
+	r[(x3 << 6) | x2] = best_x;
 }
 
 int main() {
@@ -72,23 +89,35 @@ int main() {
 	constexpr int threads = 1 << 6;
 
 	// create pointer and allocate GPU memory
+	int* rGPU = NULL;
+	check(cudaMalloc((void**)&rGPU, blocks * threads * sizeof(int)),"cudaMalloc erroe!");
 
 	// launch kernel
+	mykernel<<<blocks, threads>>>(rGPU);
 
 	// allocate memory on CPU side
-
+	std::vector<int> r(blocks * threads);
+	
 	// transfer values from GPU to CPU
+	check(cudaMemcpy(r.data(), rGPU, blocks * threads * sizeof(int), cudaMemcpyDeviceToHost),"cudaMemcpy error!");
 
 	// free allocated GPU memory
+	check(cudaFree(rGPU),"cudaFree error!");
 
 	int best_x = 0;
 	int best_v = value(best_x);
 
-	// final step : determine best x amongs the ones that have been returned by
-	// the GPU
+	// final step : determine best x amongs the ones that have been returned by the GPU
 
 	for (int i = 0; i < blocks * threads; ++i)
 	{
+		int x = r[i];
+		int v = value(x);
+		if (v < best_v) {
+			best_x = x;
+			best_v = v;
+		}
 	}
+	
 	display_final_result(best_x);
 }

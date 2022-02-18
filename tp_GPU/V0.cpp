@@ -29,6 +29,12 @@ int main() {
         4, 5, 0,
     };
 
+    // std::vector<float> d(n*n);
+	// for (int i = 0; i < d.size(); i++)
+	// 	d[i] = 1;
+	// for (int i = 0; i < n; i++)
+	// 	d[i*n + i] = 0;
+
     std::vector<float> r(n*n);
 
     step(r.data(), d.data(), n);
