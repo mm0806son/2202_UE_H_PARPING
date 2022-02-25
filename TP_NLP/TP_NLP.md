@@ -1,0 +1,1 @@
+mpirun -np 4 -host localhost,pc-elec-187,pc-elec-188,pc-elec-189 main_1

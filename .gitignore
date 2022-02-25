@@ -34,3 +34,11 @@ tp_GPU/V2
 tp_GPU/V3
 
 tp_GPU/vecvec
+
+TP_NLP/main_1
+
+TP_NLP/main_2
+
+*.txt
+
+TP_NLP/mpi.h
