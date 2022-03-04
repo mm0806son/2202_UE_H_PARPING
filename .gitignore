@@ -39,6 +39,16 @@ TP_NLP/main_1
 
 TP_NLP/main_2
 
-*.txt
-
 TP_NLP/mpi.h
+
+TP_NLP/crackstation-human-only.txt
+
+tp_pragmatique/data.txt
+
+TP_NLP/realhuman_phill.txt
+
+tp_pragmatique/mean
+
+tp_pragmatique/mean_TLP
+
+tp_pragmatique/data
